@@ -5,20 +5,33 @@ import { Server } from 'socket.io'
 import http from 'http'
 import UserService from "@/service/UserService";
 
-import { name } from "@/utils";
-
 const port = 3000;
 const app = express();
 const server = http.createServer(app)
 const io = new Server(server)
+const userService = new UserService()
 
 // 監測連接
 io.on('connection', (socket) => {
-  socket.emit('join', 'welcome')
+
+  socket.on('join', ({ userName, roomName }: { userName: string, roomName: string }) => {
+    const userData = userService.userDataInfoHandler(socket.id, userName, roomName)
+    userService.addUser(userData)
+    io.emit('join', `${userName} 加入了 ${roomName} 聊天室`)
+  })
 
   socket.on('chat', (msg) => {
-    console.log('server chat ', msg);
     io.emit('chat', msg)
+  })
+
+  socket.on('disconnect', () => {
+    console.log(socket.id)
+    const userData = userService.getUser(socket.id)
+    const userName = userData?.userName
+    if (userName) {
+      io.emit('leave', `${userData.userName} 離開了聊天室`)
+    }
+    userService.removeUser(socket.id)
   })
 })
 
@@ -29,8 +42,6 @@ if (process.env.NODE_ENV === "development") {
   prodServer(app);
 }
 
-console.log("server side", name);
-
 server.listen(port, () => {
-  console.log(`The application is running on port ${port}.`);
+  console.log(`The application is running on http://localhost:${port}.`);
 });

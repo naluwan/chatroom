@@ -13,6 +13,9 @@ if (!userName || !roomName) {
 // 建立連接 -> nodejs server
 const clientIO = io()
 
+// 加入聊天室的發送
+clientIO.emit('join', { userName, roomName })
+
 const textInput = document.querySelector('#textInput') as HTMLInputElement
 const submitBtn = document.querySelector('#submitBtn') as HTMLButtonElement
 const backBtn = document.querySelector('#backBtn') as HTMLButtonElement
@@ -21,14 +24,12 @@ const headerRoomName = document.querySelector('#headerRoomName') as HTMLParagrap
 
 headerRoomName.innerText = roomName || ''
 
+// 使用者文字送出控
 const msgHandle = (msg: string) => {
-  // <div class="flex justify-end mb-4 items-end" >
-  //   < /div>
   const divBox = document.createElement('div')
   divBox.classList.add('flex', 'justify-end', 'mb-4', 'items-end')
   divBox.innerHTML = `
     <p class="text-xs text-gray-700 mr-4" > 00: 00 </p>
-
     <div>
       <p class="text-xs text-white mb-1 text-right" > NaLuWan </p>
       <p
@@ -41,6 +42,20 @@ const msgHandle = (msg: string) => {
   chatBoard.appendChild(divBox)
   // 輸入框重置
   textInput.value = ''
+  // 聊天視窗會跟著聊天訊息自動往下
+  chatBoard.scrollTop = chatBoard.scrollHeight
+}
+
+// 使用者加入聊天室
+const roomMsgHandle = (msg: string) => {
+  const divBox = document.createElement('div')
+  divBox.classList.add('flex', 'justify-center', 'mb-4', 'items-center')
+  divBox.innerHTML = `
+    <p class="text-gray-700 text-sm" >
+      ${msg}
+    </p>
+  `
+  chatBoard.append(divBox)
   // 聊天視窗會跟著聊天訊息自動往下
   chatBoard.scrollTop = chatBoard.scrollHeight
 }
@@ -68,10 +83,14 @@ backBtn.addEventListener('click', () => {
 })
 
 clientIO.on('join', msg => {
-  console.log('msg', msg)
+  roomMsgHandle(msg)
 })
 
 clientIO.on('chat', msg => {
   console.log('client msg', msg)
   msgHandle(msg)
+})
+
+clientIO.on('leave', msg => {
+  roomMsgHandle(msg)
 })

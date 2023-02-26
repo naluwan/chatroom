@@ -26,7 +26,7 @@ export default class UserService {
 
   // 取得user
   getUser(id: string) {
-    if (this.userMap.has(id)) return null
+    if (!this.userMap.has(id)) return null
     const data = this.userMap.get(id)
     if (data) {
       return data
