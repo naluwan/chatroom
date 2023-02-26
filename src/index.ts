@@ -16,8 +16,14 @@ io.on('connection', (socket) => {
 
   socket.on('join', ({ userName, roomName }: { userName: string, roomName: string }) => {
     const userData = userService.userDataInfoHandler(socket.id, userName, roomName)
+
+    // 加入指定聊天室
+    socket.join(userData.roomName)
+
     userService.addUser(userData)
-    io.emit('join', `${userName} 加入了 ${roomName} 聊天室`)
+
+    // 對指定聊天室發送加入訊息
+    socket.broadcast.to(userData.roomName).emit('join', `${userName} 加入了 ${roomName} 聊天室`)
   })
 
   socket.on('chat', (msg) => {
@@ -29,7 +35,7 @@ io.on('connection', (socket) => {
     const userData = userService.getUser(socket.id)
     const userName = userData?.userName
     if (userName) {
-      io.emit('leave', `${userData.userName} 離開了聊天室`)
+      socket.broadcast.to(userData.roomName).emit('leave', `${userData.userName} 離開了 ${userData.roomName} 聊天室`)
     }
     userService.removeUser(socket.id)
   })
