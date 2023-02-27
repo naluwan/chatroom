@@ -4,6 +4,7 @@ import express from "express";
 import { Server } from 'socket.io'
 import http from 'http'
 import UserService from "@/service/UserService";
+import moment from 'moment'
 
 const port = 3000;
 const app = express();
@@ -13,6 +14,8 @@ const userService = new UserService()
 
 // 監測連接
 io.on('connection', (socket) => {
+
+  socket.emit('userID', socket.id)
 
   socket.on('join', ({ userName, roomName }: { userName: string, roomName: string }) => {
     const userData = userService.userDataInfoHandler(socket.id, userName, roomName)
@@ -27,11 +30,14 @@ io.on('connection', (socket) => {
   })
 
   socket.on('chat', (msg) => {
-    io.emit('chat', msg)
+    const time = moment.utc()
+    const userData = userService.getUser(socket.id)
+    if (userData) {
+      io.to(userData.roomName).emit('chat', { userData, msg, time })
+    }
   })
 
   socket.on('disconnect', () => {
-    console.log(socket.id)
     const userData = userService.getUser(socket.id)
     const userName = userData?.userName
     if (userName) {
