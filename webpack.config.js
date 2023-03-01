@@ -19,7 +19,7 @@ module.exports = {
   mode: process.env.NODE_ENV,
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "[name]/index.js",
+    filename: "[name].js",
     clean: true,
     publicPath: "/",
   },
