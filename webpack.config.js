@@ -2,11 +2,16 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CompressionPlugin = require("compression-webpack-plugin");
 const { HotModuleReplacementPlugin } = require("webpack");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const path = require("path");
 
 const entries = {
   main: ["./src/client/pages/main/index.ts"],
   chatRoom: ["./src/client/pages/chatRoom/index.ts"],
+  app: ["./src/index.ts"],
+  dev: ["./src/server/dev.ts"],
+  prod: ["./src/server/prod.ts"],
+  UserService: ["./src/service/UserService.ts"],
 };
 
 module.exports = {
@@ -50,6 +55,16 @@ module.exports = {
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
+    fallback: {
+      path: require.resolve("path-browserify"),
+      util: require.resolve("util/"),
+      url: require.resolve("url/"),
+      stream: require.resolve("stream-browserify"),
+      zlib: require.resolve("browserify-zlib"),
+      crypto: require.resolve("crypto-browserify"),
+      http: require.resolve("stream-http"),
+      https: require.resolve("https-browserify"),
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -67,9 +82,11 @@ module.exports = {
     }),
     new CompressionPlugin(),
     new HotModuleReplacementPlugin(),
+    new NodePolyfillPlugin(),
   ],
   devtool: "inline-source-map",
   devServer: {
     static: "./dist",
   },
+  target: "node",
 };

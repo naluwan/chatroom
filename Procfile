@@ -1,1 +1,1 @@
-web: node ./src/index.ts
+web: node ./dist/app/index.2ace3e9104432e45c335.js
